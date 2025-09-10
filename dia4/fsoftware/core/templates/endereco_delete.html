@@ -1,0 +1,8 @@
+<h1>Excluir Endereço</h1>
+<p>quer excluir? <strong>{{ object }}</strong>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">excluir</button>
+    <a href="{% url 'endereco_list' %}">cancelar</a>
+</form>

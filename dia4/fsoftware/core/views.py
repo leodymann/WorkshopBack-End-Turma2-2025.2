@@ -1,26 +1,43 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.views.generic import ListView, FormView, DeleteView, DetailView
+from django.urls import reverse_lazy
 from .models import Endereco
+from .form import ConsultaCepForm
 import requests
+
 def home(request):
     return render(request, 'home.html')
 
-def consulta_cep(request):
-    cep = request.GET.get('cep')  # pega o valor do GET
+class ConsultaCepView(FormView):
+    template_name = "consulta_cep.html"
+    form_class = ConsultaCepForm
+    success_url = reverse_lazy("endereco_list")
 
-    if cep:
+    def form_valid(self, form):
+        cep = form.cleaned_data['cep']
         response = requests.get(f'https://viacep.com.br/ws/{cep}/json/')
+
         if response.status_code == 200:
             data = response.json()
-            endereco = Endereco(
-                cep=data.get('cep'),
-                rua=data.get('logradouro'),
-                bairro=data.get('bairro'),
-                cidade=data.get('localidade'),
-                estado=data.get('uf')
+            Endereco.objects.create(
+                cep=data.get("cep", ""),
+                rua=data.get("logradouro", ""),
+                bairro=data.get("bairro", ""),
+                cidade=data.get("localidade", ""),
+                estado=data.get("uf", "")
             )
-            endereco.save()
-            return render(request, 'consulta_cep.html', {'endereco': endereco, 'cep': cep})
-        else:
-            return render(request, 'consulta_cep.html', {'erro': 'Não foi possível consultar o CEP.'})
+        return super().form_valid(form)
+    
 
-    return render(request, 'consulta_cep.html', {'mensagem': 'Nenhum CEP foi enviado.'})
+class EnderecoListView(ListView):
+    model = Endereco
+    template_name = "endereco_list.html"
+    context_object_name = "enderecos"
+class EnderecoDetailsView(DetailView):
+    model = Endereco
+    template_name = "endereco_detail.html"
+    context_object_name = "endereco"
+class EnderecoDeleteView(DeleteView):
+    model = Endereco
+    template_name = "endereco_delete.html"
+    success_url = reverse_lazy("endereco_list")

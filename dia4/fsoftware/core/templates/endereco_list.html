@@ -1,0 +1,14 @@
+<h1>endereços salvos</h1>
+<ul>
+    {% for endereco in enderecos %}
+        <li>
+            {{ endereco.rua }} - {{ endereco.cidade }}/{{ endereco.estado }} ({{ endereco.cep }})
+            <a href="{% url 'endereco_detail' endereco.pk %}">Detalhes</a> |
+            <a href="{% url 'endereco_delete' endereco.pk %}">Excluir</a>
+        </li>
+    {% empty %}
+        <li>nenhum endereço salvo.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'consulta_cep' %}">consultar novo CEP</a>
